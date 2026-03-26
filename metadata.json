@@ -1,0 +1,9 @@
+{
+  "name": "ChatZone",
+  "description": "A modern, real-time chat application with a secure login system and special admin privileges.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}

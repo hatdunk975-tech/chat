@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+  --bg-dark: #0f172a;
+  --card-dark: #1e293b;
+  --accent: #3b82f6;
+}
+
+body {
+  background-color: var(--bg-dark);
+  color: #f8fafc;
+  overflow: hidden;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #334155 transparent;
+}
+
