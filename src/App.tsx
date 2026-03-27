@@ -114,7 +114,7 @@ export default function App() {
     setSocket(newSocket);
 
     // Check for persisted session
-    const savedUser = localStorage.getItem("chatzone_user");
+    const savedUser = localStorage.getItem("chatuz_user");
     if (savedUser) {
       const credentials = JSON.parse(savedUser);
       newSocket.emit("login", credentials);
@@ -183,9 +183,9 @@ export default function App() {
       }
 
       // Persist session
-      localStorage.setItem("chatzone_user", JSON.stringify({
+      localStorage.setItem("chatuz_user", JSON.stringify({
         phoneNumber: user.phoneNumber,
-        password: passwordInput || JSON.parse(localStorage.getItem("chatzone_user") || "{}").password
+        password: passwordInput || JSON.parse(localStorage.getItem("chatuz_user") || "{}").password
       }));
     });
 
@@ -615,7 +615,7 @@ export default function App() {
             <div className="w-20 h-20 bg-blue-500 rounded-3xl flex items-center justify-center mb-4 shadow-lg shadow-blue-500/20">
               <Send className="text-white w-10 h-10 transform -rotate-12" />
             </div>
-            <h1 className="text-3xl font-bold text-white">ChatZone</h1>
+            <h1 className="text-3xl font-bold text-white">Chat.uz</h1>
             <p className="text-slate-400 mt-2">
               {isRegistering ? "Create your account" : "Welcome back"}
             </p>
@@ -791,7 +791,7 @@ export default function App() {
             <button 
               onClick={() => {
                 setIsLoggedIn(false);
-                localStorage.removeItem("chatzone_user");
+                localStorage.removeItem("chatuz_user");
                 setCurrentUser(null);
                 setActiveChat(null);
               }}
@@ -1149,7 +1149,7 @@ export default function App() {
             >
               <Send className="text-slate-600 w-16 h-16 transform -rotate-12" />
             </motion.div>
-            <h2 className="text-2xl font-bold text-white mb-2">Welcome to ChatZone</h2>
+            <h2 className="text-2xl font-bold text-white mb-2">Welcome to Chat.uz</h2>
             <p className="text-slate-400 max-w-xs mx-auto">
               Select a chat from the sidebar to start messaging your friends and colleagues.
             </p>
@@ -1539,7 +1539,7 @@ export default function App() {
                     <button 
                       type="button"
                       onClick={() => {
-                        alert("To install ChatZone on your device:\n\n1. Open this page in your browser\n2. Tap the 'Share' or 'Menu' button\n3. Select 'Add to Home Screen' or 'Install App'");
+                        alert("To install Chat.uz on your device:\n\n1. Open this page in your browser\n2. Tap the 'Share' or 'Menu' button\n3. Select 'Add to Home Screen' or 'Install App'");
                       }}
                       className="mt-4 w-full bg-slate-700/50 hover:bg-slate-700 text-blue-400 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border border-blue-500/20"
                     >
@@ -1685,7 +1685,7 @@ export default function App() {
                     </div>
                     <div>
                       <h2 className="text-2xl font-bold text-white">Add Person</h2>
-                      <p className="text-sm text-slate-400">Invite someone to ChatZone</p>
+                      <p className="text-sm text-slate-400">Invite someone to Chat.uz</p>
                     </div>
                   </div>
                   <button 
