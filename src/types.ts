@@ -5,7 +5,10 @@ export interface User {
   avatar?: string;
   status: "online" | "offline";
   bio?: string;
+  birthDay?: number;
+  birthMonth?: number;
   birthYear?: number;
+  gender?: "male" | "female" | "other";
   role?: "owner" | "user";
   joinedAt?: string;
   contacts?: string[];

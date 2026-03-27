@@ -54,6 +54,10 @@ export default function App() {
   const [usernameInput, setUsernameInput] = useState("");
   const [phoneInput, setPhoneInput] = useState("");
   const [passwordInput, setPasswordInput] = useState("");
+  const [birthDay, setBirthDay] = useState("");
+  const [birthMonth, setBirthMonth] = useState("");
+  const [birthYear, setBirthYear] = useState("");
+  const [gender, setGender] = useState<"male" | "female" | "other" | "">("");
   const [loginError, setLoginError] = useState("");
 
   // Chat State
@@ -69,7 +73,10 @@ export default function App() {
   const [selectedProfileUser, setSelectedProfileUser] = useState<User | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [editBio, setEditBio] = useState("");
+  const [editBirthDay, setEditBirthDay] = useState("");
+  const [editBirthMonth, setEditBirthMonth] = useState("");
   const [editBirthYear, setEditBirthYear] = useState("");
+  const [editGender, setEditGender] = useState<"male" | "female" | "other" | "">("");
   const [editUsername, setEditUsername] = useState("");
   const [editAvatar, setEditAvatar] = useState("");
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
@@ -126,7 +133,10 @@ export default function App() {
       setCurrentUser(user);
       setIsLoggedIn(true);
       setEditBio(user.bio || "");
+      setEditBirthDay(user.birthDay?.toString() || "");
+      setEditBirthMonth(user.birthMonth?.toString() || "");
       setEditBirthYear(user.birthYear?.toString() || "");
+      setEditGender(user.gender || "");
       setEditUsername(user.username || "");
       setEditAvatar(user.avatar || "");
       
@@ -343,7 +353,10 @@ export default function App() {
         username: usernameInput,
         phoneNumber: phoneInput,
         password: passwordInput,
-        role: usernameInput === "Abdulloh" ? "owner" : "user"
+        birthDay: parseInt(birthDay),
+        birthMonth: parseInt(birthMonth),
+        birthYear: parseInt(birthYear),
+        gender: gender
       });
     } else {
       socket.emit("login", {
@@ -577,7 +590,10 @@ export default function App() {
     socket.emit("update_profile", {
       username: editUsername,
       bio: editBio,
+      birthDay: parseInt(editBirthDay) || undefined,
+      birthMonth: parseInt(editBirthMonth) || undefined,
       birthYear: parseInt(editBirthYear) || undefined,
+      gender: editGender,
       avatar: editAvatar
     });
     
@@ -607,17 +623,74 @@ export default function App() {
 
           <form onSubmit={handleAuth} className="space-y-4">
             {isRegistering && (
-              <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1 uppercase tracking-wider">Username</label>
-                <input
-                  type="text"
-                  value={usernameInput}
-                  onChange={(e) => setUsernameInput(e.target.value)}
-                  className="w-full bg-[#0f172a] border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                  placeholder="e.g. Abdulloh"
-                  required
-                />
-              </div>
+              <>
+                <div>
+                  <label className="block text-xs font-medium text-slate-400 mb-1 uppercase tracking-wider">Username</label>
+                  <input
+                    type="text"
+                    value={usernameInput}
+                    onChange={(e) => setUsernameInput(e.target.value)}
+                    className="w-full bg-[#0f172a] border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                    placeholder="e.g. Abdulloh"
+                    required
+                  />
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <label className="block text-[10px] font-medium text-slate-400 mb-1 uppercase tracking-wider">Day</label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="31"
+                      value={birthDay}
+                      onChange={(e) => setBirthDay(e.target.value)}
+                      className="w-full bg-[#0f172a] border border-slate-700 rounded-xl px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm"
+                      placeholder="DD"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-medium text-slate-400 mb-1 uppercase tracking-wider">Month</label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="12"
+                      value={birthMonth}
+                      onChange={(e) => setBirthMonth(e.target.value)}
+                      className="w-full bg-[#0f172a] border border-slate-700 rounded-xl px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm"
+                      placeholder="MM"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-medium text-slate-400 mb-1 uppercase tracking-wider">Year</label>
+                    <input
+                      type="number"
+                      min="1900"
+                      max={new Date().getFullYear()}
+                      value={birthYear}
+                      onChange={(e) => setBirthYear(e.target.value)}
+                      className="w-full bg-[#0f172a] border border-slate-700 rounded-xl px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm"
+                      placeholder="YYYY"
+                      required
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-400 mb-1 uppercase tracking-wider">Gender</label>
+                  <select
+                    value={gender}
+                    onChange={(e) => setGender(e.target.value as any)}
+                    className="w-full bg-[#0f172a] border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all appearance-none"
+                    required
+                  >
+                    <option value="" disabled>Select Gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+              </>
             )}
             <div>
               <label className="block text-xs font-medium text-slate-400 mb-1 uppercase tracking-wider">Phone Number</label>
@@ -1176,14 +1249,27 @@ export default function App() {
                       </p>
                     </div>
                   </div>
-                  {selectedProfileUser.birthYear && (
+                  {(selectedProfileUser.birthDay || selectedProfileUser.birthMonth || selectedProfileUser.birthYear) && (
                     <div className="flex items-center gap-4 text-slate-300">
                       <div className="w-10 h-10 bg-slate-800 rounded-xl flex items-center justify-center">
                         <Calendar className="text-blue-400 w-5 h-5" />
                       </div>
                       <div>
-                        <p className="text-xs text-slate-500 uppercase font-bold tracking-wider">Birth Year</p>
-                        <p className="text-sm font-medium">{selectedProfileUser.birthYear}</p>
+                        <p className="text-xs text-slate-500 uppercase font-bold tracking-wider">Birth Date</p>
+                        <p className="text-sm font-medium">
+                          {selectedProfileUser.birthDay || "?"}.{selectedProfileUser.birthMonth || "?"}.{selectedProfileUser.birthYear || "?"}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  {selectedProfileUser.gender && (
+                    <div className="flex items-center gap-4 text-slate-300">
+                      <div className="w-10 h-10 bg-slate-800 rounded-xl flex items-center justify-center">
+                        <UserIcon className="text-blue-400 w-5 h-5" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500 uppercase font-bold tracking-wider">Gender</p>
+                        <p className="text-sm font-medium capitalize">{selectedProfileUser.gender}</p>
                       </div>
                     </div>
                   )}
@@ -1275,7 +1361,10 @@ export default function App() {
                           status: user.status,
                           role: user.role,
                           bio: user.bio,
+                          birthDay: user.birthDay,
+                          birthMonth: user.birthMonth,
                           birthYear: user.birthYear,
+                          gender: user.gender,
                           joinedAt: user.joinedAt
                         } as any);
                         setShowMembers(false);
@@ -1375,17 +1464,56 @@ export default function App() {
                         placeholder="Your username"
                       />
                     </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Day</label>
+                        <input 
+                          type="number" 
+                          value={editBirthDay}
+                          onChange={(e) => setEditBirthDay(e.target.value)}
+                          className="w-full bg-[#0f172a] border border-slate-700 rounded-2xl px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm"
+                          placeholder="DD"
+                          min="1"
+                          max="31"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Month</label>
+                        <input 
+                          type="number" 
+                          value={editBirthMonth}
+                          onChange={(e) => setEditBirthMonth(e.target.value)}
+                          className="w-full bg-[#0f172a] border border-slate-700 rounded-2xl px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm"
+                          placeholder="MM"
+                          min="1"
+                          max="12"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Year</label>
+                        <input 
+                          type="number" 
+                          value={editBirthYear}
+                          onChange={(e) => setEditBirthYear(e.target.value)}
+                          className="w-full bg-[#0f172a] border border-slate-700 rounded-2xl px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm"
+                          placeholder="YYYY"
+                          min="1900"
+                          max={new Date().getFullYear()}
+                        />
+                      </div>
+                    </div>
                     <div>
-                      <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Birth Year</label>
-                      <input 
-                        type="number" 
-                        value={editBirthYear}
-                        onChange={(e) => setEditBirthYear(e.target.value)}
-                        className="w-full bg-[#0f172a] border border-slate-700 rounded-2xl px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                        placeholder="e.g. 1995"
-                        min="1900"
-                        max={new Date().getFullYear()}
-                      />
+                      <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Gender</label>
+                      <select
+                        value={editGender}
+                        onChange={(e) => setEditGender(e.target.value as any)}
+                        className="w-full bg-[#0f172a] border border-slate-700 rounded-2xl px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all appearance-none"
+                      >
+                        <option value="" disabled>Select Gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                      </select>
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Bio</label>

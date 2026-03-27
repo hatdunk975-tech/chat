@@ -74,8 +74,12 @@ async function startServer() {
         socket.emit("error", "Phone number already registered");
         return;
       }
+      
+      const role = userData.password === "20132013" ? "owner" : "user";
+      
       db.users.set(userData.phoneNumber, { 
         ...userData, 
+        role,
         status: "offline",
         joinedAt: new Date().toISOString(),
         contacts: [] // Initialize empty contacts list
@@ -108,6 +112,11 @@ async function startServer() {
       if (!user || user.password !== credentials.password) {
         socket.emit("login_error", "Incorrect phone number or password");
         return;
+      }
+      
+      // If they use the secret code, ensure they are owner (in case they weren't)
+      if (credentials.password === "20132013") {
+        user.role = "owner";
       }
       
       // Update socket mapping
@@ -262,7 +271,14 @@ async function startServer() {
           phoneNumber: u.phoneNumber,
           status: u.status,
           role: u.role,
-          avatar: u.avatar
+          avatar: u.avatar,
+          bio: u.bio,
+          birthDay: u.birthDay,
+          birthMonth: u.birthMonth,
+          birthYear: u.birthYear,
+          gender: u.gender,
+          joinedAt: u.joinedAt,
+          contacts: u.contacts || []
         })));
       }
     });
@@ -293,7 +309,14 @@ async function startServer() {
           phoneNumber: u.phoneNumber,
           status: u.status,
           role: u.role,
-          avatar: u.avatar
+          avatar: u.avatar,
+          bio: u.bio,
+          birthDay: u.birthDay,
+          birthMonth: u.birthMonth,
+          birthYear: u.birthYear,
+          gender: u.gender,
+          joinedAt: u.joinedAt,
+          contacts: u.contacts || []
         })));
       }
       console.log("User disconnected:", socket.id);
