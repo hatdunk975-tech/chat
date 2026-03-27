@@ -11,6 +11,8 @@ export interface User {
   gender?: "male" | "female" | "other";
   role?: "owner" | "user";
   joinedAt?: string;
+  lastLoginAt?: string;
+  onlineSince?: string;
   contacts?: string[];
 }
 
@@ -36,6 +38,8 @@ export interface Chat {
   avatar?: string;
   role?: "owner" | "user";
   isContact?: boolean;
+  lastLoginAt?: string;
+  onlineSince?: string;
 }
 
 export interface CallState {

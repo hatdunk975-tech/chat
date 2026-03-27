@@ -165,7 +165,9 @@ export default function App() {
             avatar: u.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${u.username}`,
             unreadCount: 0,
             role: u.role,
-            isContact: true
+            isContact: true,
+            lastLoginAt: u.lastLoginAt,
+            onlineSince: u.onlineSince
           })),
           ...nonContacts.map((u: any) => ({
             id: u.phoneNumber,
@@ -175,7 +177,9 @@ export default function App() {
             avatar: u.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${u.username}`,
             unreadCount: 0,
             role: u.role,
-            isContact: false
+            isContact: false,
+            lastLoginAt: u.lastLoginAt,
+            onlineSince: u.onlineSince
           }))
         ];
         setChats(newChats);
@@ -235,7 +239,9 @@ export default function App() {
           avatar: u.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${u.username}`,
           unreadCount: 0,
           role: u.role,
-          isContact: true
+          isContact: true,
+          lastLoginAt: u.lastLoginAt,
+          onlineSince: u.onlineSince
         })),
         ...nonContacts.map(u => ({
           id: u.phoneNumber,
@@ -245,7 +251,9 @@ export default function App() {
           avatar: u.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${u.username}`,
           unreadCount: 0,
           role: u.role,
-          isContact: false
+          isContact: false,
+          lastLoginAt: u.lastLoginAt,
+          onlineSince: u.onlineSince
         }))
       ];
       setChats(newChats);
@@ -603,13 +611,34 @@ export default function App() {
     }, 500);
   };
 
+  const getOnlineDuration = (onlineSince?: string) => {
+    if (!onlineSince) return "";
+    const start = new Date(onlineSince).getTime();
+    const now = new Date().getTime();
+    const diff = now - start;
+    const minutes = Math.floor(diff / 60000);
+    if (minutes < 1) return "just now";
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    return `${hours}h ${minutes % 60}m ago`;
+  };
+
+  const formatLastSeen = (lastLoginAt?: string, isOnline?: boolean, onlineSince?: string) => {
+    if (isOnline) {
+      const duration = getOnlineDuration(onlineSince);
+      return `online (for ${duration})`;
+    }
+    if (!lastLoginAt) return "offline";
+    return `last seen ${format(new Date(lastLoginAt), "HH:mm")}`;
+  };
+
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen bg-[#0f172a] flex items-center justify-center p-4">
+      <div className="min-h-screen bg-[#0e1621] flex items-center justify-center p-4">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-[#1e293b] p-8 rounded-2xl shadow-2xl w-full max-w-md border border-slate-700"
+          className="bg-[#17212b] p-8 rounded-2xl shadow-2xl w-full max-w-md border border-slate-700/50"
         >
           <div className="flex flex-col items-center mb-8">
             <div className="w-20 h-20 bg-blue-500 rounded-3xl flex items-center justify-center mb-4 shadow-lg shadow-blue-500/20">
@@ -744,14 +773,14 @@ export default function App() {
   }
 
   return (
-    <div className="h-screen bg-[#0f172a] flex overflow-hidden font-sans text-slate-200">
+    <div className="h-screen bg-[#0e1621] flex overflow-hidden font-sans text-slate-200">
       {/* Sidebar */}
       <motion.aside 
         initial={false}
         animate={{ width: isSidebarOpen ? "380px" : "0px", opacity: isSidebarOpen ? 1 : 0 }}
-        className="bg-[#1e293b] border-r border-slate-700 flex flex-col relative z-20"
+        className="bg-[#17212b] border-r border-black/20 flex flex-col relative z-20"
       >
-        <div className="p-4 border-b border-slate-700 flex items-center justify-between">
+        <div className="p-4 border-b border-black/10 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className={cn(
               "w-10 h-10 rounded-full flex items-center justify-center",
@@ -863,11 +892,11 @@ export default function App() {
       </motion.aside>
 
       {/* Main Chat Area */}
-      <main className="flex-1 flex flex-col relative bg-[#0f172a]">
+      <main className="flex-1 flex flex-col relative bg-[#0e1621]">
         {activeChat ? (
           <>
             {/* Chat Header */}
-            <header className="h-16 bg-[#1e293b] border-b border-slate-700 flex items-center justify-between px-6 z-10">
+            <header className="h-16 bg-[#17212b] border-b border-black/10 flex items-center justify-between px-6 z-10">
               <div className="flex items-center gap-4">
                 <button 
                   onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -900,7 +929,7 @@ export default function App() {
                     </h2>
                   </div>
                   <p className="text-[10px] text-slate-400">
-                    {activeChat.phoneNumber === "global" ? "Public Room" : (remoteTyping[activeChat.phoneNumber] ? "typing..." : "online")}
+                    {activeChat.phoneNumber === "global" ? "Public Room" : (remoteTyping[activeChat.phoneNumber] ? "typing..." : formatLastSeen(activeChat.lastLoginAt, onlineUsers.find(u => u.phoneNumber === activeChat.phoneNumber)?.status === "online", activeChat.onlineSince))}
                   </p>
                 </button>
               </div>
@@ -959,123 +988,126 @@ export default function App() {
             </header>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]">
-              {messages
-                .filter(m => {
-                  if (activeChat.phoneNumber === "global") {
-                    return m.receiverPhone === "global";
-                  }
-                  return (m.senderPhone === activeChat.phoneNumber && m.receiverPhone === currentUser?.phoneNumber) || 
-                         (m.senderPhone === currentUser?.phoneNumber && m.receiverPhone === activeChat.phoneNumber);
-                })
-                .map((msg) => {
-                  const isMe = msg.senderPhone === currentUser?.phoneNumber;
-                  return (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      key={msg.id}
-                      className={cn(
-                        "flex w-full",
-                        isMe ? "justify-end" : "justify-start"
-                      )}
-                    >
-                      <div className={cn(
-                        "max-w-[70%] rounded-2xl px-4 py-2 shadow-sm relative group",
-                        isMe 
-                          ? "bg-blue-600 text-white rounded-tr-none" 
-                          : "bg-[#1e293b] text-slate-200 rounded-tl-none border border-slate-700"
-                      )}>
-                        {!isMe && activeChat.phoneNumber === "global" && (
-                          <p className="text-[10px] font-bold text-blue-400 mb-1 uppercase tracking-wider">
-                            {msg.senderName || "Unknown"}
-                          </p>
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar relative">
+              <div className="absolute inset-0 opacity-[0.05] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] z-0"></div>
+              <div className="relative z-10 space-y-4">
+                {messages
+                  .filter(m => {
+                    if (activeChat.phoneNumber === "global") {
+                      return m.receiverPhone === "global";
+                    }
+                    return (m.senderPhone === activeChat.phoneNumber && m.receiverPhone === currentUser?.phoneNumber) || 
+                           (m.senderPhone === currentUser?.phoneNumber && m.receiverPhone === activeChat.phoneNumber);
+                  })
+                  .map((msg) => {
+                    const isMe = msg.senderPhone === currentUser?.phoneNumber;
+                    return (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        key={msg.id}
+                        className={cn(
+                          "flex w-full",
+                          isMe ? "justify-end" : "justify-start"
                         )}
-                        {msg.type === "image" ? (
-                          <div className="mb-1 relative group/img">
-                            <img 
-                              src={msg.fileUrl} 
-                              alt={msg.fileName} 
-                              className="rounded-lg max-w-full h-auto max-h-64 object-cover cursor-pointer"
-                              onClick={() => window.open(msg.fileUrl, '_blank')}
-                            />
-                            <div className="absolute top-2 right-2 flex gap-2">
-                              <a 
-                                href={msg.fileUrl} 
-                                download={msg.fileName || "image.png"}
-                                className="flex items-center gap-1.5 px-2 py-1.5 bg-black/60 hover:bg-black/80 rounded-xl text-white backdrop-blur-md transition-all hover:scale-105 shadow-lg border border-white/10"
-                                title="Download Image"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <Download className="w-3.5 h-3.5" />
-                                <span className="text-[10px] font-bold uppercase tracking-wider">Save</span>
-                              </a>
-                            </div>
-                          </div>
-                        ) : msg.type === "video" ? (
-                          <div className="mb-1 relative group/video">
-                            <video 
-                              src={msg.fileUrl} 
-                              controls 
-                              className="rounded-lg max-w-full h-auto max-h-64 bg-black"
-                            />
-                            <div className="absolute top-2 right-2 flex gap-2">
-                              <a 
-                                href={msg.fileUrl} 
-                                download={msg.fileName || "video.mp4"}
-                                className="flex items-center gap-1.5 px-2 py-1.5 bg-black/60 hover:bg-black/80 rounded-xl text-white backdrop-blur-md transition-all hover:scale-105 shadow-lg border border-white/10"
-                                title="Download Video"
-                              >
-                                <Download className="w-3.5 h-3.5" />
-                                <span className="text-[10px] font-bold uppercase tracking-wider">Save</span>
-                              </a>
-                            </div>
-                          </div>
-                        ) : msg.type === "file" ? (
-                          <a 
-                            href={msg.fileUrl} 
-                            download={msg.fileName}
-                            className="flex items-center gap-3 bg-black/20 p-3 rounded-xl mb-1 hover:bg-black/30 transition-all cursor-pointer group/file border border-white/5"
-                          >
-                            <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center text-blue-400 group-hover/file:bg-blue-500/30 transition-colors shadow-inner">
-                              <FileText className="w-7 h-7" />
-                            </div>
-                            <div className="flex-1 overflow-hidden">
-                              <p className="text-sm font-semibold truncate text-slate-100">{msg.fileName}</p>
-                              <div className="flex items-center gap-1.5 mt-0.5">
-                                <Download className="w-3 h-3 text-blue-400" />
-                                <p className="text-[10px] text-blue-400 font-bold uppercase tracking-wider">Download File</p>
+                      >
+                        <div className={cn(
+                          "max-w-[75%] rounded-2xl px-4 py-2 shadow-md relative group",
+                          isMe 
+                            ? "bg-[#2b5278] text-white rounded-tr-none" 
+                            : "bg-[#182533] text-slate-200 rounded-tl-none border border-black/10"
+                        )}>
+                          {!isMe && activeChat.phoneNumber === "global" && (
+                            <p className="text-[10px] font-bold text-blue-400 mb-1 uppercase tracking-wider">
+                              {msg.senderName || "Unknown"}
+                            </p>
+                          )}
+                          {msg.type === "image" ? (
+                            <div className="mb-1 relative group/img">
+                              <img 
+                                src={msg.fileUrl} 
+                                alt={msg.fileName} 
+                                className="rounded-lg max-w-full h-auto max-h-64 object-cover cursor-pointer"
+                                onClick={() => window.open(msg.fileUrl, '_blank')}
+                              />
+                              <div className="absolute top-2 right-2 flex gap-2">
+                                <a 
+                                  href={msg.fileUrl} 
+                                  download={msg.fileName || "image.png"}
+                                  className="flex items-center gap-1.5 px-2 py-1.5 bg-black/60 hover:bg-black/80 rounded-xl text-white backdrop-blur-md transition-all hover:scale-105 shadow-lg border border-white/10"
+                                  title="Download Image"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <Download className="w-3.5 h-3.5" />
+                                  <span className="text-[10px] font-bold uppercase tracking-wider">Save</span>
+                                </a>
                               </div>
                             </div>
-                          </a>
-                        ) : (
-                          <p className="text-sm leading-relaxed">
-                            {renderMessageText(msg.text)}
-                          </p>
-                        )}
-                        <div className={cn(
-                          "flex items-center gap-1 mt-1 justify-end",
-                          isMe ? "text-blue-100" : "text-slate-500"
-                        )}>
-                          <span className="text-[10px]">
-                            {format(new Date(msg.timestamp), "HH:mm")}
-                          </span>
-                          {isMe && <CheckCheck className="w-3 h-3" />}
+                          ) : msg.type === "video" ? (
+                            <div className="mb-1 relative group/video">
+                              <video 
+                                src={msg.fileUrl} 
+                                controls 
+                                className="rounded-lg max-w-full h-auto max-h-64 bg-black"
+                              />
+                              <div className="absolute top-2 right-2 flex gap-2">
+                                <a 
+                                  href={msg.fileUrl} 
+                                  download={msg.fileName || "video.mp4"}
+                                  className="flex items-center gap-1.5 px-2 py-1.5 bg-black/60 hover:bg-black/80 rounded-xl text-white backdrop-blur-md transition-all hover:scale-105 shadow-lg border border-white/10"
+                                  title="Download Video"
+                                >
+                                  <Download className="w-3.5 h-3.5" />
+                                  <span className="text-[10px] font-bold uppercase tracking-wider">Save</span>
+                                </a>
+                              </div>
+                            </div>
+                          ) : msg.type === "file" ? (
+                            <a 
+                              href={msg.fileUrl} 
+                              download={msg.fileName}
+                              className="flex items-center gap-3 bg-black/20 p-3 rounded-xl mb-1 hover:bg-black/30 transition-all cursor-pointer group/file border border-white/5"
+                            >
+                              <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center text-blue-400 group-hover/file:bg-blue-500/30 transition-colors shadow-inner">
+                                <FileText className="w-7 h-7" />
+                              </div>
+                              <div className="flex-1 overflow-hidden">
+                                <p className="text-sm font-semibold truncate text-slate-100">{msg.fileName}</p>
+                                <div className="flex items-center gap-1.5 mt-0.5">
+                                  <Download className="w-3 h-3 text-blue-400" />
+                                  <p className="text-[10px] text-blue-400 font-bold uppercase tracking-wider">Download File</p>
+                                </div>
+                              </div>
+                            </a>
+                          ) : (
+                            <p className="text-sm leading-relaxed">
+                              {renderMessageText(msg.text)}
+                            </p>
+                          )}
+                          <div className={cn(
+                            "flex items-center gap-1 mt-1 justify-end",
+                            isMe ? "text-blue-100/70" : "text-slate-500"
+                          )}>
+                            <span className="text-[10px]">
+                              {format(new Date(msg.timestamp), "HH:mm")}
+                            </span>
+                            {isMe && <CheckCheck className="w-3 h-3" />}
+                          </div>
                         </div>
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              <div ref={messagesEndRef} />
+                      </motion.div>
+                    );
+                  })}
+                <div ref={messagesEndRef} />
+              </div>
             </div>
 
             {/* Input Area */}
-            <footer className="p-4 bg-[#1e293b] border-t border-slate-700">
+            <footer className="p-4 bg-[#17212b] border-t border-black/10">
               <form 
                 onSubmit={handleSendMessage}
                 className="max-w-4xl mx-auto flex items-end gap-3"
               >
-                <div className="flex-1 bg-[#0f172a] border border-slate-700 rounded-2xl flex items-end p-2 transition-all focus-within:ring-1 focus-within:ring-blue-500">
+                <div className="flex-1 bg-[#0e1621] border border-black/10 rounded-2xl flex items-end p-2 transition-all focus-within:ring-1 focus-within:ring-blue-500/50">
                   <div className="relative">
                     <button 
                       type="button"
@@ -1245,7 +1277,7 @@ export default function App() {
                         "text-sm font-medium capitalize",
                         selectedProfileUser.status === "online" ? "text-green-400" : "text-slate-400"
                       )}>
-                        {selectedProfileUser.status}
+                        {formatLastSeen(selectedProfileUser.lastLoginAt, selectedProfileUser.status === "online", selectedProfileUser.onlineSince)}
                       </p>
                     </div>
                   </div>
@@ -1365,7 +1397,9 @@ export default function App() {
                           birthMonth: user.birthMonth,
                           birthYear: user.birthYear,
                           gender: user.gender,
-                          joinedAt: user.joinedAt
+                          joinedAt: user.joinedAt,
+                          lastLoginAt: user.lastLoginAt,
+                          onlineSince: user.onlineSince
                         } as any);
                         setShowMembers(false);
                       }}

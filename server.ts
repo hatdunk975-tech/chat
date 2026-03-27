@@ -123,6 +123,9 @@ async function startServer() {
       db.sockets.set(socket.id, user.phoneNumber);
       user.status = "online";
       user.socketId = socket.id;
+      user.lastLoginAt = new Date().toISOString();
+      user.onlineSince = new Date().toISOString();
+      saveDb();
       
       const onlineUsersList = Array.from(db.users.values()).map(u => ({
         username: u.username,
@@ -133,6 +136,8 @@ async function startServer() {
         bio: u.bio,
         birthYear: u.birthYear,
         joinedAt: u.joinedAt,
+        lastLoginAt: u.lastLoginAt,
+        onlineSince: u.onlineSince,
         contacts: u.contacts || []
       }));
       
@@ -154,6 +159,8 @@ async function startServer() {
         bio: u.bio,
         birthYear: u.birthYear,
         joinedAt: u.joinedAt,
+        lastLoginAt: u.lastLoginAt,
+        onlineSince: u.onlineSince,
         contacts: u.contacts || []
       })));
     });
@@ -185,6 +192,8 @@ async function startServer() {
           bio: u.bio,
           birthYear: u.birthYear,
           joinedAt: u.joinedAt,
+          lastLoginAt: u.lastLoginAt,
+          onlineSince: u.onlineSince,
           contacts: u.contacts || []
         })));
         
@@ -278,6 +287,8 @@ async function startServer() {
           birthYear: u.birthYear,
           gender: u.gender,
           joinedAt: u.joinedAt,
+          lastLoginAt: u.lastLoginAt,
+          onlineSince: u.onlineSince,
           contacts: u.contacts || []
         })));
       }
@@ -302,6 +313,8 @@ async function startServer() {
         if (user) {
           user.status = "offline";
           user.socketId = null;
+          user.onlineSince = null;
+          saveDb();
         }
         db.sockets.delete(socket.id);
         io.emit("user_status_change", Array.from(db.users.values()).map(u => ({
@@ -316,6 +329,8 @@ async function startServer() {
           birthYear: u.birthYear,
           gender: u.gender,
           joinedAt: u.joinedAt,
+          lastLoginAt: u.lastLoginAt,
+          onlineSince: u.onlineSince,
           contacts: u.contacts || []
         })));
       }
